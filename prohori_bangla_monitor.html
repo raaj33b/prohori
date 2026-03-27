@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>প্রহরী — বাংলা ইন্টেলিজেন্স মনিটর</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Tiro+Bangla:ital@0;1&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+
+  #prohori {
+    background: #0a0c0f;
+    color: #c8d4e0;
+    font-family: 'Rajdhani', sans-serif;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mono { font-family: 'Share Tech Mono', monospace; }
+  .bangla { font-family: 'Tiro Bangla', serif; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #1e2a38;
+    background: #080a0d;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: #e8f4ff;
+    text-transform: uppercase;
+  }
+
+  .alert-badge {
+    background: #3d0a0a;
+    border: 1px solid #8b1a1a;
+    color: #ff6b6b;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .alert-dot {
+    width: 7px; height: 7px;
+    background: #ff4444;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .nav-tabs { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
+
+  .nav-tab {
+    padding: 5px 14px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: #556677;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .nav-tab.active { color: #7ecfff; border-color: #1a3a55; background: #0d1e2e; }
+  .nav-tab:hover { color: #99bbcc; }
+
+  .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 7px 16px;
+    background: #080b0e;
+    border-bottom: 1px solid #141e28;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #445566;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .status-item { display: flex; align-items: center; gap: 6px; }
+  .status-label { color: #3a4d5e; }
+  .status-val { color: #7ecfff; }
+  .status-val.green { color: #4dbb7a; }
+  .status-val.red { color: #ff6b6b; }
+  .status-val.yellow { color: #f0a020; }
+
+  .main {
+    display: grid;
+    grid-template-columns: 220px 1fr 320px;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .left-panel {
+    background: #080b0e;
+    border-right: 1px solid #141e28;
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+
+  .left-panel::-webkit-scrollbar { width: 3px; }
+  .left-panel::-webkit-scrollbar-track { background: #080b0e; }
+  .left-panel::-webkit-scrollbar-thumb { background: #1e2e3e; }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #3a4d5e;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 0 14px 8px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .live-badge {
+    color: #4dbb7a;
+    font-size: 9px;
+    letter-spacing: 2px;
+    border: 1px solid #1a4a2a;
+    padding: 2px 6px;
+  }
+
+  .sensor-item {
+    display: flex;
+    align-items: center;
+    padding: 9px 14px;
+    border-bottom: 1px solid #0e1520;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .sensor-item:hover { background: #0d1520; }
+
+  .sensor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sensor-info { flex: 1; }
+  .sensor-name { font-size: 13px; color: #b0c4d4; font-weight: 600; }
+  .sensor-sub { font-size: 10px; color: #445566; font-family: 'Share Tech Mono', monospace; margin-top: 1px; }
+
+  .sensor-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .c-green { color: #4dbb7a; }
+  .c-red { color: #ff6b6b; }
+  .c-blue { color: #7ecfff; }
+  .c-yellow { color: #f0a020; }
+  .c-gray { color: #445566; }
+
+  .center-panel {
+    position: relative;
+    overflow: hidden;
+    background: #060809;
+  }
+
+  .map-toolbar {
+    position: absolute;
+    top: 12px; left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .map-btn {
+    width: 30px; height: 30px;
+    background: #0d1824;
+    border: 1px solid #1e2e3e;
+    color: #7ecfff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .map-label {
+    position: absolute;
+    top: 12px; left: 58px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #3a4d5e;
+    letter-spacing: 2px;
+  }
+
+  .map-hint {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: #2a3a4a;
+    letter-spacing: 1px;
+  }
+
+  #world-map { width: 100%; height: 100%; }
+
+  .right-panel {
+    background: #080b0e;
+    border-left: 1px solid #141e28;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .osint-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid #141e28;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .osint-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #3a4d5e;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .urgent-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #ff8888;
+    letter-spacing: 1px;
+  }
+
+  .osint-tabs {
+    display: flex;
+    border-bottom: 1px solid #0e1520;
+    flex-shrink: 0;
+  }
+
+  .osint-tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 4px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #3a4d5e;
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .osint-tab.active {
+    color: #7ecfff;
+    border-bottom-color: #3a7aaa;
+    background: #0a1420;
+  }
+
+  .osint-stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    min-height: 0;
+  }
+
+  .osint-stream::-webkit-scrollbar { width: 3px; }
+  .osint-stream::-webkit-scrollbar-track { background: #080b0e; }
+  .osint-stream::-webkit-scrollbar-thumb { background: #1e2e3e; }
+
+  .news-item {
+    position: relative;
+    padding: 10px 14px 10px 18px;
+    border-bottom: 1px solid #0d1520;
+    animation: slideIn 0.4s ease;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .news-item:hover { background: #0d1520; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .news-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+    flex-wrap: wrap;
+  }
+
+  .source-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+
+  .sb-red { background: #2a0808; color: #ff8888; border: 1px solid #4a1010; }
+  .sb-blue { background: #08182a; color: #88ccff; border: 1px solid #103050; }
+  .sb-yellow { background: #1a1208; color: #f0c060; border: 1px solid #3a2a10; }
+  .sb-green { background: #081a10; color: #60c080; border: 1px solid #104020; }
+  .sb-purple { background: #120a2a; color: #b088ff; border: 1px solid #2a1060; }
+
+  .tag-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 2px 5px;
+    letter-spacing: 1px;
+    border: 1px solid #1e2e3e;
+    color: #556677;
+  }
+
+  .news-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: #2a3a4a;
+    margin-left: auto;
+  }
+
+  .news-text {
+    font-family: 'Tiro Bangla', serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #99aabb;
+  }
+
+  .news-text.urgent { color: #ccddee; }
+
+  .urgent-bar {
+    width: 3px;
+    background: #ff4444;
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+  }
+
+  .loading-dots { display: flex; gap: 6px; }
+
+  .loading-dots span {
+    width: 6px; height: 6px;
+    background: #3a5a7a;
+    border-radius: 50%;
+    animation: dotBounce 1.2s infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotBounce {
+    0%,80%,100%{transform:scale(0.6);opacity:0.4}
+    40%{transform:scale(1);opacity:1}
+  }
+
+  .loading-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #3a4d5e;
+    letter-spacing: 2px;
+  }
+
+  .error-state {
+    padding: 20px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #ff6b6b;
+    border: 1px solid #3a1010;
+    margin: 10px;
+    background: #150808;
+  }
+
+  .ticker-bar {
+    background: #060809;
+    border-top: 1px solid #141e28;
+    overflow: hidden;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ticker-label {
+    background: #1a3a55;
+    color: #7ecfff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 0 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border-right: 1px solid #1e3a55;
+  }
+
+  .ticker-scroll {
+    overflow: hidden;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    animation: tickerMove 60s linear infinite;
+    font-family: 'Tiro Bangla', serif;
+    font-size: 12px;
+    color: #556677;
+  }
+
+  .ticker-inner:hover { animation-play-state: paused; }
+
+  @keyframes tickerMove {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .ticker-sep { color: #1e3a55; padding: 0 20px; font-family: 'Share Tech Mono', monospace; }
+</style>
+</head>
+<body>
+<div id="prohori">
+
+  <div class="topbar">
+    <div class="logo">প্রহরী</div>
+    <div class="alert-badge">
+      <div class="alert-dot"></div>
+      উচ্চ সতর্কতা
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-tab active">বিশ্ব</div>
+      <div class="nav-tab">এশিয়া</div>
+      <div class="nav-tab">মধ্যপ্রাচ্য</div>
+      <div class="nav-tab">ইউরোপ</div>
+      <div class="nav-tab">বাংলাদেশ</div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <div class="status-item">
+      <span class="status-label">সুইপ</span>
+      <span class="status-val mono" id="sweep">23.0s</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label mono" id="clock">--:--:--</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">সোর্স</span>
+      <span class="status-val green">২৭/২৭</span>
+    </div>
+    <div class="status-item">
+      <span class="status-label">ডেল্টা</span>
+      <span class="status-val yellow">মিশ্র</span>
+    </div>
+    <div class="status-item">
+      <span class="status-val red">উচ্চ সতর্কতা</span>
+    </div>
+    <div class="status-item" style="margin-left:auto">
+      <span class="status-label">এআই নিউজ</span>
+      <span class="status-val green" id="ai-status">সংযুক্ত</span>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="left-panel">
+      <div class="panel-title">
+        সেন্সর গ্রিড
+        <span class="live-badge">লাইভ</span>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#4dbb7a"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">বিমান কার্যক্রম</div>
+          <div class="sensor-sub">১০টি থিয়েটার</div>
+        </div>
+        <div class="sensor-count c-gray">০</div>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#ff6b6b"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">তাপীয় স্পাইক</div>
+          <div class="sensor-sub">রাতের সনাক্তকরণ</div>
+        </div>
+        <div class="sensor-count c-gray">০</div>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#7ecfff"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">এসডিআর কভারেজ</div>
+          <div class="sensor-sub">৯০৭ অনলাইন</div>
+        </div>
+        <div class="sensor-count c-blue">৯০৭</div>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#b088ff"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">সমুদ্রপথ নজর</div>
+          <div class="sensor-sub">চোকপয়েন্ট</div>
+        </div>
+        <div class="sensor-count c-yellow">৮</div>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#f0a020"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">পারমাণবিক স্থান</div>
+          <div class="sensor-sub">মনিটর</div>
+        </div>
+        <div class="sensor-count c-yellow">৬</div>
+      </div>
+      <div class="sensor-item">
+        <div class="sensor-dot" style="background:#ff4444"></div>
+        <div class="sensor-info">
+          <div class="sensor-name">সংঘাত ঘটনা</div>
+          <div class="sensor-sub">হতাহত</div>
+        </div>
+        <div class="sensor-count c-gray">০</div>
+      </div>
+      <div class="panel-title" style="margin-top:16px">অঞ্চলসমূহ</div>
+      <div id="region-list"></div>
+    </div>
+
+    <div class="center-panel">
+      <div class="map-toolbar">
+        <div class="map-btn">+</div>
+        <div class="map-btn">−</div>
+        <div class="map-btn" style="font-size:12px">✈</div>
+      </div>
+      <div class="map-label mono">গ্লোব মোড</div>
+      <div class="map-hint mono">স্ক্রল করুন জুম · টেনে প্যান করুন</div>
+      <svg id="world-map" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="right-panel">
+      <div class="osint-header">
+        <div class="osint-title">ক্রস-সোর্স সিগন্যাল</div>
+        <div class="urgent-count" id="urgent-counter">১৪ জরুরি</div>
+      </div>
+      <div class="osint-tabs">
+        <div class="osint-tab active">বিশ্বদর্শন</div>
+        <div class="osint-tab">বাংলাদেশ</div>
+        <div class="osint-tab">ভারত</div>
+        <div class="osint-tab">মধ্যপ্রাচ্য</div>
+      </div>
+      <div class="osint-title" style="padding:8px 14px 4px;font-size:9px;letter-spacing:2px;color:#3a4d5e;font-family:'Share Tech Mono',monospace;border-bottom:1px solid #0e1520;flex-shrink:0">
+        OSINT স্ট্রিম &nbsp;&nbsp; <span id="urgent-label" style="color:#ff8888">১৪ জরুরি</span>
+      </div>
+      <div class="osint-stream" id="news-stream">
+        <div class="loading-state">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <div class="loading-text">এআই নিউজ লোড হচ্ছে...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ticker-bar">
+    <div class="ticker-label">প্রহরী</div>
+    <div class="ticker-scroll">
+      <div class="ticker-inner" id="ticker">
+        <span>লোড হচ্ছে...</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const REGIONS = [
+  {name:'বাল্টিক', val:0, color:'#445566'},
+  {name:'ইউক্রেন', val:0, color:'#ff8888'},
+  {name:'বসফরাস', val:0, color:'#445566'},
+  {name:'মধ্যপ্রাচ্য', val:3, color:'#f0a020'},
+  {name:'হরমুজ প্রণালী', val:0, color:'#445566'},
+  {name:'তাইওয়ান প্রণালী', val:1, color:'#f0c060'},
+  {name:'কোরিয়া উপদ্বীপ', val:0, color:'#445566'},
+  {name:'দক্ষিণ চীন সাগর', val:0, color:'#445566'},
+  {name:'মালাক্কা প্রণালী', val:0, color:'#445566'},
+  {name:'পানামা খাল', val:0, color:'#445566'},
+  {name:'ক্যারিবিয়ান', val:0, color:'#445566'},
+  {name:'গিনি উপসাগর', val:0, color:'#445566'},
+];
+
+const rl = document.getElementById('region-list');
+REGIONS.forEach(r => {
+  const d = document.createElement('div');
+  d.className = 'sensor-item';
+  d.innerHTML = `<div class="sensor-info"><div class="sensor-name bangla" style="font-size:12px">${r.name}</div></div><div class="sensor-count" style="color:${r.val > 0 ? r.color : '#2a3a4a'};font-size:12px">${r.val}</div>`;
+  rl.appendChild(d);
+});
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+let sweep = 23.0;
+setInterval(() => {
+  sweep = (sweep - 0.1 < 0) ? 30.0 : sweep - 0.1;
+  document.getElementById('sweep').textContent = sweep.toFixed(1) + 's';
+}, 100);
+
+const mapSvg = document.getElementById('world-map');
+const W = 800, H = 450;
+
+function lonLatToXY(lon, lat) {
+  return [(lon + 180) * (W / 360), (90 - lat) * (H / 180)];
+}
+
+const bgRect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+bgRect.setAttribute('width','800'); bgRect.setAttribute('height','450');
+bgRect.setAttribute('fill','#060809');
+mapSvg.appendChild(bgRect);
+
+const gridG = document.createElementNS('http://www.w3.org/2000/svg','g');
+for(let lon = -180; lon <= 180; lon+=30) {
+  const [x] = lonLatToXY(lon, 0);
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',x); line.setAttribute('y1',0);
+  line.setAttribute('x2',x); line.setAttribute('y2',450);
+  line.setAttribute('stroke','#0e1520'); line.setAttribute('stroke-width','0.5');
+  gridG.appendChild(line);
+}
+for(let lat = -90; lat <= 90; lat+=30) {
+  const [,y] = lonLatToXY(0, lat);
+  const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('x1',0); line.setAttribute('y1',y);
+  line.setAttribute('x2',800); line.setAttribute('y2',y);
+  line.setAttribute('stroke','#0e1520'); line.setAttribute('stroke-width','0.5');
+  gridG.appendChild(line);
+}
+mapSvg.appendChild(gridG);
+
+const hotspots = [
+  {lon:31, lat:49, label:'ইউক্রেন', color:'#ff6b6b', size:5},
+  {lon:35, lat:32, label:'মধ্যপ্রাচ্য', color:'#f0a020', size:6},
+  {lon:121, lat:24, label:'তাইওয়ান', color:'#f0c060', size:4},
+  {lon:128, lat:37, label:'কোরিয়া', color:'#7ecfff', size:4},
+  {lon:88, lat:24, label:'বাংলাদেশ', color:'#4dbb7a', size:5},
+  {lon:77, lat:28, label:'ভারত', color:'#7ecfff', size:5},
+  {lon:29, lat:41, label:'বসফরাস', color:'#556677', size:3},
+  {lon:56, lat:26, label:'হরমুজ', color:'#f0a020', size:4},
+  {lon:103, lat:1, label:'মালাক্কা', color:'#556677', size:3},
+  {lon:114, lat:16, label:'দ.চীন সাগর', color:'#556677', size:4},
+  {lon:-79, lat:9, label:'পানামা', color:'#556677', size:3},
+  {lon:2, lat:6, label:'গিনি', color:'#556677', size:3},
+];
+
+const hsG = document.createElementNS('http://www.w3.org/2000/svg','g');
+hotspots.forEach(h => {
+  const [x,y] = lonLatToXY(h.lon, h.lat);
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  if(h.size >= 5) {
+    const ring = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    ring.setAttribute('cx',x); ring.setAttribute('cy',y);
+    ring.setAttribute('r', h.size + 4);
+    ring.setAttribute('fill','none'); ring.setAttribute('stroke', h.color);
+    ring.setAttribute('stroke-width','0.8'); ring.setAttribute('opacity','0.3');
+    g.appendChild(ring);
+  }
+  const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  dot.setAttribute('cx',x); dot.setAttribute('cy',y);
+  dot.setAttribute('r',h.size); dot.setAttribute('fill', h.color); dot.setAttribute('opacity','0.85');
+  g.appendChild(dot);
+  const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+  txt.setAttribute('x', x + h.size + 3); txt.setAttribute('y', y + 4);
+  txt.setAttribute('fill', h.color); txt.setAttribute('font-size','9');
+  txt.setAttribute('font-family','Tiro Bangla, serif'); txt.setAttribute('opacity','0.7');
+  txt.textContent = h.label + ' ' + (h.size >= 5 ? '০' : '');
+  g.appendChild(txt);
+  hsG.appendChild(g);
+});
+mapSvg.appendChild(hsG);
+
+document.querySelectorAll('.nav-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+  });
+});
+
+document.querySelectorAll('.osint-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.osint-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    loadNews(t.textContent.trim());
+  });
+});
+
+const sourceStyles = {
+  'বিডিনিউজ': 'sb-green', 'প্রথম আলো': 'sb-blue', 'ডেইলি স্টার': 'sb-blue',
+  'আনাদোলু': 'sb-yellow', 'রয়টার্স': 'sb-blue', 'বিবিসি': 'sb-blue',
+  'আল জাজিরা': 'sb-yellow', 'এএফপি': 'sb-purple', 'ওয়ারট্রান্সলেটেড': 'sb-red',
+  'ইন্ডিয়া টুডে': 'sb-yellow', 'ডন': 'sb-green', 'গার্ডিয়ান': 'sb-blue',
+};
+
+function renderNewsItem(item) {
+  const div = document.createElement('div');
+  div.className = 'news-item';
+  const sbClass = sourceStyles[item.source] || 'sb-blue';
+  const tags = (item.tags || []).map(t => `<span class="tag-badge">${t}</span>`).join(' ');
+  const urgent = item.urgent ? ' urgent' : '';
+  const bar = item.urgent ? '<div class="urgent-bar"></div>' : '';
+  div.innerHTML = `${bar}<div class="news-meta"><span class="source-badge ${sbClass}">${item.source}</span>${tags}<span class="news-time">${item.time}</span></div><div class="news-text${urgent} bangla">${item.text}</div>`;
+  return div;
+}
+
+let newsInterval = null;
+let allItems = [];
+let displayedCount = 0;
+
+function startStream(items) {
+  allItems = items;
+  displayedCount = 0;
+  const stream = document.getElementById('news-stream');
+  stream.innerHTML = '';
+  function addNext() {
+    if(displayedCount >= allItems.length) { displayedCount = 0; allItems = [...allItems].reverse(); }
+    const item = allItems[displayedCount++];
+    const el = renderNewsItem(item);
+    stream.insertBefore(el, stream.firstChild);
+    if(stream.children.length > 30) stream.removeChild(stream.lastChild);
+  }
+  addNext(); addNext(); addNext();
+  if(newsInterval) clearInterval(newsInterval);
+  newsInterval = setInterval(addNext, 4000);
+}
+
+async function loadNews(tab) {
+  const stream = document.getElementById('news-stream');
+  stream.innerHTML = `<div class="loading-state"><div class="loading-dots"><span></span><span></span><span></span></div><div class="loading-text">এআই নিউজ লোড হচ্ছে...</div></div>`;
+  const topicMap = {
+    'বিশ্বদর্শন': 'বৈশ্বিক নিরাপত্তা, সংঘাত, ভূরাজনীতি',
+    'বাংলাদেশ': 'বাংলাদেশের রাজনীতি, নিরাপত্তা, অর্থনীতি',
+    'ভারত': 'ভারতের নিরাপত্তা, সীমান্ত, রাজনীতি',
+    'মধ্যপ্রাচ্য': 'মধ্যপ্রাচ্যের সংঘাত, ইরান, ইসরাইল, সৌদি',
+  };
+  const topic = topicMap[tab] || topicMap['বিশ্বদর্শন'];
+  const sources = tab === 'বাংলাদেশ'
+    ? ['প্রথম আলো','বিডিনিউজ','ডেইলি স্টার','চ্যানেল আই','বাংলাদেশ প্রতিদিন']
+    : tab === 'ভারত'
+    ? ['ইন্ডিয়া টুডে','এনডিটিভি','দ্য হিন্দু','ইন্ডিয়ান এক্সপ্রেস']
+    : tab === 'মধ্যপ্রাচ্য'
+    ? ['আল জাজিরা','আনাদোলু','মিডল ইস্ট আই','এএফপি','ওয়ারট্রান্সলেটেড']
+    : ['রয়টার্স','বিবিসি','আল জাজিরা','আনাদোলু','গার্ডিয়ান','এএফপি','ওয়ারট্রান্সলেটেড'];
+  const prompt = `তুমি একটি ইন্টেলিজেন্স মনিটরিং সিস্টেমের জন্য সংবাদ তৈরি করছ।\nবিষয়: ${topic}\n\n১৫টি সংক্ষিপ্ত সংবাদ আইটেম তৈরি করো JSON ফরম্যাটে। প্রতিটি আইটেমে থাকবে:\n- "source": এই তালিকা থেকে: ${sources.join(', ')}\n- "time": যেমন "৩ ঘণ্টা আগে", "৫ মিনিট আগে", "১ ঘণ্টা আগে"\n- "text": ৩০-৫০ শব্দের বাংলায় সংবাদ। বাস্তবসম্মত ও তথ্যপূর্ণ।\n- "tags": ১-২টি ট্যাগ যেমন ["ড্রোন","হামলা"] বা ["নির্বাচন","রাজনীতি"]\n- "urgent": true বা false (২-৩টি urgent রাখো)\n\nশুধু JSON array রিটার্ন করো, অন্য কোনো টেক্সট নয়।`;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const items = JSON.parse(clean);
+    document.getElementById('ai-status').textContent = 'সক্রিয়';
+    document.getElementById('ai-status').style.color = '#4dbb7a';
+    const urgentCount = items.filter(i => i.urgent).length;
+    document.getElementById('urgent-counter').textContent = urgentCount + ' জরুরি';
+    document.getElementById('urgent-label').textContent = urgentCount + ' জরুরি';
+    updateTicker(items);
+    startStream(items);
+  } catch(e) {
+    stream.innerHTML = `<div class="error-state">ত্রুটি: এআই সংযোগ ব্যর্থ হয়েছে।<br><br>${e.message}</div>`;
+    document.getElementById('ai-status').textContent = 'বিচ্ছিন্ন';
+    document.getElementById('ai-status').style.color = '#ff6b6b';
+  }
+}
+
+function updateTicker(items) {
+  const ticker = document.getElementById('ticker');
+  const texts = items.slice(0,8).map(i =>
+    `<span class="bangla">${i.source}: ${i.text}</span><span class="ticker-sep">◆</span>`
+  ).join('');
+  ticker.innerHTML = texts + texts;
+}
+
+loadNews('বিশ্বদর্শন');
+setInterval(() => {
+  const activeTab = document.querySelector('.osint-tab.active');
+  if(activeTab) loadNews(activeTab.textContent.trim());
+}, 3 * 60 * 1000);
+</script>
+</body>
+</html>
